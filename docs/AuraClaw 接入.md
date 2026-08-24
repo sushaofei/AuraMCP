@@ -6,25 +6,22 @@ AuraMCP 是 **标准 MCP `2026-07-28` Server**。AuraClaw Action Hands 用标准
 
 ## 登记
 
-在 AuraClaw 的 `AURACLAW_MCP_EGRESS_SERVERS_JSON` 增加一条（Secret 只放 Vault `credential_ref`）：
+在 AuraClaw 用热配置 Admin API 登记（`POST /v1/admin/mcp-servers`，再 `:test` / `:enable`）。Secret 只放 Vault `credential_ref`：
 
 ```json
-[
-  {
-    "server_id": "auramcp",
-    "title": "AuraMCP extensions",
-    "endpoint": "https://auramcp.internal/mcp",
-    "protocol_revision": "2026-07-28",
-    "credential_ref": "vault/auramcp#workload",
-    "auth_strategy": "workload_trusted_context",
-    "trust_level": "platform",
-    "allowed_tool_prefixes": ["auramcp."],
-    "allowed_resource_schemes": ["auramcp"],
-    "allowed_prompt_prefixes": ["auramcp."],
-    "status": "active",
-    "enabled": true
-  }
-]
+{
+  "server_id": "auramcp",
+  "title": "AuraMCP extensions",
+  "endpoint": "https://auramcp.internal/mcp",
+  "protocol_revision": "2026-07-28",
+  "network_mode": "public",
+  "credential_ref": "vault/auramcp#workload",
+  "auth_strategy": "workload_trusted_context",
+  "trust_level": "platform",
+  "allowed_tool_prefixes": ["auramcp."],
+  "allowed_resource_schemes": ["auramcp"],
+  "allowed_prompt_prefixes": ["auramcp."]
+}
 ```
 
 AuraMCP 侧对应：
@@ -33,6 +30,19 @@ AuraMCP 侧对应：
 - 生产必须 `AURAMCP_DEPLOYMENT_PROFILE=production` 且 `AURAMCP_ALLOW_INSECURE_IDENTITY=false`
 
 Hands 用标准 MCP 方法访问（`server/discover`、`tools/list`、`tools/call`、`resources/*`、`prompts/*`），并发送 `Authorization: Bearer <workload>`、`X-CT-*` 与 `_meta.io.auraclaw/*`。AuraMCP 校验这些值，但不回调任何外部身份系统。专用身份叠在传输层，不改变 MCP params schema，也不另开私有 JSON-RPC 方法。
+
+## 本地联调
+
+AuraClaw 热配置把 endpoint 换成 loopback 即可：
+
+```json
+{
+  "endpoint": "http://127.0.0.1:8020/mcp",
+  "network_mode": "loopback"
+}
+```
+
+Vault / debug vault 的 `vault/auramcp#workload` 仍须与 `AURAMCP_HANDS_WORKLOAD_TOKEN` 相同。开发可 `AURAMCP_PLATFORM_STORE=memory`。Hands 对账成功后 Catalog 会出现 `auramcp.health.ping`。AuraClaw `tests/unit/test_auramcp_egress.py` 覆盖这条出站路径。
 
 ## 不要做的事
 

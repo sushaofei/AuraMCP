@@ -104,6 +104,16 @@ def test_resources_and_prompts(client: TestClient) -> None:
     assert "timeout" in prompt.json()["result"]["messages"][0]["content"]["text"]
 
 
+def test_invalid_workload_is_unauthorized(client: TestClient) -> None:
+    response = client.post(
+        "/mcp",
+        json=rpc("tools/list"),
+        headers=mcp_headers("tools/list", token="wrong-workload"),
+    )
+    assert response.status_code == 401
+    assert response.json()["error"]["code"] == "unauthorized"
+
+
 def test_unknown_method_is_jsonrpc_error(client: TestClient) -> None:
     response = client.post(
         "/mcp",
