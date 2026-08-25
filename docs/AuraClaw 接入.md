@@ -42,7 +42,7 @@ AuraClaw 热配置把 endpoint 换成 loopback 即可：
 }
 ```
 
-Vault / debug vault 的 `vault/auramcp#workload` 仍须与 `AURAMCP_HANDS_WORKLOAD_TOKEN` 相同。开发可 `AURAMCP_PLATFORM_STORE=memory`。Hands 对账成功后 Catalog 会出现 `auramcp.health.ping`。AuraClaw `tests/unit/test_auramcp_egress.py` 覆盖这条出站路径。
+Vault `http://10.244.16.132:8200` 的 `vault/auramcp#workload` 须与各开发机 `AURAMCP_HANDS_WORKLOAD_TOKEN` 相同。不要再用本机 debug vault 分叉这份 secret。开发可 `AURAMCP_PLATFORM_STORE=memory`。Hands 对账成功后 Catalog 会出现 `auramcp.health.ping`。AuraClaw `tests/unit/test_auramcp_egress.py` 覆盖这条出站路径。
 
 ## 不要做的事
 
