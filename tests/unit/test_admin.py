@@ -12,6 +12,7 @@ def test_admin_catalog_and_health(client: TestClient) -> None:
     catalog = client.get("/internal/v1/catalog", headers={"X-CT-Tenant-ID": "tenant-a"})
     names = [item["name"] for item in catalog.json()["packages"]]
     assert "builtin" in names
+    assert "about" in names
     assert "ops" in names
     assert all(
         record["canonical_name"].startswith("auramcp.")

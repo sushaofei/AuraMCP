@@ -10,6 +10,7 @@ from auramcp.admin.http import create_admin_router
 from auramcp.catalog.service import CatalogService
 from auramcp.contracts.extensions import ExtensionPackage
 from auramcp.domain.ports import PlatformStore
+from auramcp.extensions.about import about_package
 from auramcp.extensions.builtin import builtin_package
 from auramcp.extensions.ops import OpsExtension
 from auramcp.extensions.registry import ExtensionRegistry
@@ -40,7 +41,7 @@ async def build_runtime(settings: Settings) -> Runtime:
         store = await PostgresPlatformStore.connect(settings)
     packages: list[ExtensionPackage] = []
     ops = OpsExtension(store, lambda: tuple(packages))
-    packages.extend((builtin_package(), ops.package()))
+    packages.extend((builtin_package(), about_package(), ops.package()))
     registry = ExtensionRegistry(tuple(packages))
     catalog = CatalogService(registry, store)
     identity = IdentityGuard(

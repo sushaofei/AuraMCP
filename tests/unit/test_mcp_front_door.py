@@ -3,6 +3,8 @@ from __future__ import annotations
 from fastapi.testclient import TestClient
 from tests.conftest import mcp_headers, rpc
 
+from auramcp.extensions.about.package import AURACLAW_INTRO_TEXT, AURACLAW_TAGLINE
+
 
 def test_discover_lists_supported_version(client: TestClient) -> None:
     response = client.post(
@@ -22,8 +24,24 @@ def test_tools_list_contains_builtin_and_ops(client: TestClient) -> None:
     names = [item["name"] for item in response.json()["result"]["tools"]]
     assert "auramcp.health.ping" in names
     assert "auramcp.example.echo" in names
+    assert "auramcp.about.auraclaw" in names
     assert "auramcp.ops.catalog_snapshot" in names
     assert all(name.startswith("auramcp.") for name in names)
+
+
+def test_about_auraclaw_tool(client: TestClient) -> None:
+    response = client.post(
+        "/mcp",
+        json=rpc("tools/call", {"name": "auramcp.about.auraclaw", "arguments": {}}),
+        headers=mcp_headers("tools/call", name="auramcp.about.auraclaw"),
+    )
+    body = response.json()["result"]
+    assert body["isError"] is False
+    structured = body["structuredContent"]
+    assert structured["name"] == "AuraClaw"
+    assert structured["tagline"] == AURACLAW_TAGLINE
+    assert structured["description"] == AURACLAW_INTRO_TEXT
+    assert AURACLAW_INTRO_TEXT in body["content"][0]["text"]
 
 
 def test_echo_and_ping_tools(client: TestClient) -> None:
