@@ -18,7 +18,6 @@ AuraMCP 是 **标准 MCP `2026-07-28` Server**。AuraClaw Action Hands 用标准
   "credential_ref": "vault/auramcp#workload",
   "auth_strategy": "workload_trusted_context",
   "trust_level": "platform",
-  "allowed_tool_prefixes": ["auramcp."],
   "allowed_resource_schemes": ["auramcp"],
   "allowed_prompt_prefixes": ["auramcp."]
 }
