@@ -1,0 +1,13 @@
+# Supply a verified Python image digest with Python >=3.11.
+ARG PYTHON_IMAGE
+FROM ${PYTHON_IMAGE}
+WORKDIR /opt/auramcp
+COPY deploy/requirements.lock ./requirements.lock
+RUN python -m pip install --no-cache-dir --require-hashes -r requirements.lock
+COPY src ./src
+COPY migrations ./migrations
+RUN chmod -R a+rX /opt/auramcp/src /opt/auramcp/migrations
+ENV PYTHONPATH=/opt/auramcp/src PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+USER 10001:10001
+ENTRYPOINT ["python", "-m", "auramcp"]
+CMD ["run", "--host", "0.0.0.0", "--port", "8020"]

@@ -34,6 +34,10 @@ Tool / Resource / Prompt **capability data must not** use this database. Configu
 
 See [docs/扩展包开发.md](docs/扩展包开发.md). AuraClaw registration is [docs/AuraClaw 接入.md](docs/AuraClaw%20接入.md).
 
+Opt-in database reads and grouped statistics are described in
+[数据库查询与分析](docs/数据库查询与分析.md). They use an independent data connection,
+explicit table/column and identity scope, and parameterized read-only queries.
+
 ## Check
 
 ```bash

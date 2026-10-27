@@ -1,0 +1,47 @@
+name: auramcp
+services:
+  server:
+    image: ${AURAMCP_IMAGE:?set a verified local image ID}
+    pull_policy: never
+    restart: unless-stopped
+    user: "10001:10001"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: ["/tmp:size=64m,nosuid,nodev"]
+    pids_limit: 128
+    mem_limit: 512m
+    cpus: 1
+    ports: ["127.0.0.1:${AURAMCP_LOCAL_PORT:-18020}:8020"]
+    environment:
+      AURAMCP_DEPLOYMENT_PROFILE: ${AURAMCP_DEPLOYMENT_PROFILE:-development}
+      AURAMCP_ALLOW_INSECURE_IDENTITY: "false"
+      AURAMCP_HANDS_WORKLOAD_TOKEN_FILE: /run/secrets/hands_workload_token
+      AURAMCP_ADMIN_TOKEN_FILE: /run/secrets/admin_token
+      AURAMCP_PLATFORM_STORE: postgres
+      AURAMCP_DB_HOST: ${AURAMCP_DB_HOST:?required}
+      AURAMCP_DB_PORT: ${AURAMCP_DB_PORT:-5432}
+      AURAMCP_DB_NAME: ${AURAMCP_DB_NAME:-auramcp}
+      AURAMCP_DB_USER: ${AURAMCP_DB_USER:?required}
+      AURAMCP_DB_PASSWORD_FILE: /run/secrets/db_password
+      AURAMCP_DB_SSLMODE: ${AURAMCP_DB_SSLMODE:-prefer}
+      AURAMCP_ANALYTICS_CONFIG_FILE: /run/config/analytics.json
+    volumes:
+      - ${AURAMCP_CONFIG_ROOT:?required}/analytics.json:/run/config/analytics.json:ro
+    secrets: [hands_workload_token, admin_token, db_password]
+    networks:
+      platform:
+        aliases: [auramcp]
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8020/internal/v1/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+secrets:
+  hands_workload_token: {file: "${AURAMCP_CONFIG_ROOT}/secrets/hands_workload_token"}
+  admin_token: {file: "${AURAMCP_CONFIG_ROOT}/secrets/admin_token"}
+  db_password: {file: "${AURAMCP_CONFIG_ROOT}/secrets/db_password"}
+networks:
+  platform:
+    external: true
+    name: ${AURAMCP_NETWORK:?required}
