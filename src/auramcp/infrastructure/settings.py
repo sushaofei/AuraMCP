@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     page_size: int = Field(default=50, ge=1, le=200)
     max_response_bytes: int = Field(default=1 * 1024 * 1024, ge=1024)
     analytics_config_file: str | None = None
+    semantic_config_file: str | None = None
 
     @model_validator(mode="after")
     def validate_production(self) -> Settings:

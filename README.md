@@ -46,3 +46,7 @@ uv run ruff check .
 uv run mypy src/auramcp
 uv run lint-imports
 ```
+
+Opt-in Cube Core semantic queries are described in
+[Cube Core 接入](docs/Cube-Core接入.md). Natural language stays in AuraClaw;
+AuraMCP exposes approved metrics through structured, identity-scoped read-only tools.

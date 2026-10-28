@@ -1,0 +1,45 @@
+name: auramcp-semantic
+services:
+  cube:
+    image: ${CUBE_IMAGE:?use a verified immutable Cube image ID}
+    pull_policy: never
+    restart: unless-stopped
+    user: "10001:10001"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: ["/tmp:size=256m,nosuid,nodev"]
+    mem_limit: 2g
+    cpus: 2
+    pids_limit: 256
+    ports: ["127.0.0.1:14000:4000"]
+    environment:
+      NODE_ENV: production
+      CUBEJS_DEV_MODE: "false"
+      CUBEJS_DB_TYPE: postgres
+      CUBEJS_TELEMETRY: "false"
+      CUBEJS_CACHE_AND_QUEUE_DRIVER: memory
+      CUBEJS_EXTERNAL_DEFAULT: "false"
+      CUBEJS_WEB_SOCKETS: "false"
+      CUBEJS_SCHEDULED_REFRESH_DEFAULT: "false"
+      CUBEJS_PG_SQL_PORT: "false"
+      PGOPTIONS: "-c default_transaction_read_only=on -c statement_timeout=5000"
+    volumes:
+      - ${SEMANTIC_ROOT:?required}/cube.js:/cube/conf/cube.js:ro
+      - ${SEMANTIC_ROOT}/model:/cube/conf/model:ro
+      - ${SEMANTIC_ROOT}/source.json:/run/config/source.json:ro
+      - ${SEMANTIC_ROOT}/secrets/cube_api_secret:/run/secrets/cube_api_secret:ro
+      - ${SEMANTIC_ROOT}/secrets/cube_public_key:/run/secrets/cube_public_key:ro
+      - ${SEMANTIC_ROOT}/secrets/source_password:/run/secrets/source_password:ro
+    networks:
+      platform:
+        aliases: [auramcp-cube]
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:4000/livez').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+networks:
+  platform:
+    external: true
+    name: ${AURAMCP_NETWORK:?required}

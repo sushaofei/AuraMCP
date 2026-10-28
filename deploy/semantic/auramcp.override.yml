@@ -1,0 +1,8 @@
+# Combine with deploy/compose.yml. Private config is derived from the existing authorized source.
+services:
+  server:
+    environment:
+      AURAMCP_SEMANTIC_CONFIG_FILE: /run/config/semantic.json
+    volumes:
+      - ${SEMANTIC_ROOT:?required}/semantic.json:/run/config/semantic.json:ro
+      - ${SEMANTIC_ROOT}/secrets/cube_private_key:/run/secrets/cube_private_key:ro

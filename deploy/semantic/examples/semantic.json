@@ -1,0 +1,22 @@
+{
+  "base_url": "http://auramcp-cube:4000/cubejs-api/v1/",
+  "signing_key_file": "/run/secrets/cube_private_key",
+  "timeout_seconds": 12,
+  "datasets": [{
+    "name": "records",
+    "title": "Approved business records",
+    "description": "Record-level metrics, without project deduplication.",
+    "cube": "records",
+    "model_version": "records-v1",
+    "timezone": "Asia/Shanghai",
+    "allowed_tenants": ["example-tenant"],
+    "allowed_users": ["example-user"],
+    "members": {
+      "count": {"cube_member":"records.count","title":"Count","description":"Record count","kind":"measure","type":"number","unit":"records"},
+      "amount": {"cube_member":"records.amount","title":"Amount","description":"Non-null sum; confirm the original source unit before deployment","kind":"measure","type":"number","unit":"source unit"},
+      "id": {"cube_member":"records.id","title":"ID","description":"Record identifier","kind":"dimension","type":"number"},
+      "area": {"cube_member":"records.area","title":"Area","description":"Source region label","kind":"dimension","type":"string"},
+      "published_at": {"cube_member":"records.published_at","title":"Published at","description":"Announcement time, not ingestion time","kind":"dimension","type":"time"}
+    }
+  }]
+}

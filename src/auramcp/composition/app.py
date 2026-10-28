@@ -13,15 +13,18 @@ from auramcp.catalog.service import CatalogService
 from auramcp.contracts.extensions import ExtensionPackage
 from auramcp.domain.database import DatabaseReader
 from auramcp.domain.ports import PlatformStore
+from auramcp.domain.semantic import SemanticReader
 from auramcp.extensions.about import about_package
 from auramcp.extensions.builtin import builtin_package
 from auramcp.extensions.database import DatabaseExtension
 from auramcp.extensions.ops import OpsExtension
 from auramcp.extensions.registry import ExtensionRegistry
+from auramcp.extensions.semantic import SemanticExtension
 from auramcp.identity.guard import IdentityGuard
 from auramcp.infrastructure.analytics import AnalyticsConfig, PostgresAnalytics
 from auramcp.infrastructure.memory_store import MemoryPlatformStore
 from auramcp.infrastructure.postgres import PostgresPlatformStore
+from auramcp.infrastructure.semantic import CubeSemanticReader, SemanticConfig
 from auramcp.infrastructure.settings import Settings
 from auramcp.mcp.front_door import McpFrontDoor
 from auramcp.mcp.http import create_mcp_router
@@ -37,6 +40,7 @@ class Runtime:
     metrics: Metrics
     front_door: McpFrontDoor
     database: DatabaseReader | None = None
+    semantic: SemanticReader | None = None
 
 
 async def build_runtime(settings: Settings) -> Runtime:
@@ -63,6 +67,19 @@ async def build_runtime(settings: Settings) -> Runtime:
         except BaseException:
             await store.aclose()
             raise
+    semantic = None
+    if settings.semantic_config_file:
+        try:
+            semantic_config = SemanticConfig.model_validate_json(
+                await asyncio.to_thread(Path(settings.semantic_config_file).read_bytes)
+            )
+            semantic = CubeSemanticReader(semantic_config)
+            packages.append(SemanticExtension(semantic).package())
+        except BaseException:
+            if database is not None:
+                await database.aclose()
+            await store.aclose()
+            raise
     registry = ExtensionRegistry(tuple(packages))
     catalog = CatalogService(registry, store)
     identity = IdentityGuard(
@@ -85,6 +102,7 @@ async def build_runtime(settings: Settings) -> Runtime:
         metrics=metrics,
         front_door=front_door,
         database=database,
+        semantic=semantic,
     )
 
 
@@ -99,8 +117,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             yield
         finally:
             try:
-                if runtime.database is not None:
-                    await runtime.database.aclose()
+                try:
+                    if runtime.semantic is not None:
+                        await runtime.semantic.aclose()
+                finally:
+                    if runtime.database is not None:
+                        await runtime.database.aclose()
             finally:
                 await runtime.store.aclose()
 

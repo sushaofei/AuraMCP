@@ -1,0 +1,11 @@
+{
+  "host": "approved-source.internal",
+  "port": 5432,
+  "database": "approved_business_database",
+  "user": "existing_reader",
+  "ssl": "require",
+  "allowed_tenants": ["example-tenant"],
+  "allowed_users": ["example-user"],
+  "dataset": "records",
+  "model_version": "records-v1"
+}
